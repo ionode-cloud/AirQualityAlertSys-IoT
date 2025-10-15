@@ -343,30 +343,6 @@ html {
 }
 
 /* =================== RESPONSIVE BREAKPOINTS =================== */
-@media screen and (min-width: 768px) {
-  .header-bar {
-    flex-direction: row;
-    align-items: center;
-  }
-
-  .metrics-grid {
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  }
-
-  .map-table-layout {
-    grid-template-columns: 2fr 1fr;
-  }
-
-  #map {
-    height: 500px;
-  }
-
-  .station-table-wrapper {
-    max-height: 500px;
-  }
-}
-
-
 .map-wrapper {
   width: 100%;
   max-width: 1200px;
@@ -419,5 +395,40 @@ html {
 @keyframes map-blink-marker {
   0%, 50%, 100% { opacity: 1; }
   25%, 75% { opacity: 0; }
+}
+
+@media screen and (max-width: 320px) {
+  .dashboard-container {
+    padding: 10px;
+    width: 100%;
+  }
+  .app-container{
+    width: 100%;
+     display: block;
+  }
+   .table-panel{
+    margin-top: 15px;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .dashboard-container {
+    padding: 12px;
+    width: 100%;
+  }
+   .app-container{
+    width: 100%;
+    display: block;
+  }
+  .table-panel{
+    margin-top: 15px;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .dashboard-container {
+    padding: 15px;
+    width: 100%;
+  }
 }
 

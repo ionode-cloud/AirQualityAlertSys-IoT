@@ -2,7 +2,6 @@ import React from 'react';
 import '../App.css';
 
 const MapComponent = ({ stations, selectedStationId }) => {
-  // Use _id from MongoDB if available, fallback to id
   const selectedStation = stations.find(
     s => s._id === selectedStationId || s.id === selectedStationId
   );
@@ -22,8 +21,6 @@ const MapComponent = ({ stations, selectedStationId }) => {
         allowFullScreen
         loading="lazy"
       ></iframe>
-
-      {/* Optional blinking marker overlay */}
       <div className="map-blink-marker" />
     </div>
   );

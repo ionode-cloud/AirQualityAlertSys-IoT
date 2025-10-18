@@ -40,7 +40,43 @@ const aqiSchema = new Schema({
 
 const AQI = model("AQI",aqiSchema);
 
-app.use("/:station", async (req, res) => {
+app.get("/api/data", async (req,res) => {
+    const allData = await AQI.find({});
+    res.status(200).json(allData)
+});
+
+app.get("/api/data/update/:station", async (req,res) => {
+    const { pm2_5, pm10, co2, no2, o3, temp, hum, pm1, o2, co } = req.query;
+    const { station } = req.params;
+    let reqStation = await AQI.find({ station : station })??null;
+    let updatedData
+    // console.log(reqStation);
+    
+
+    // console.log(reqStation[0].pm1);
+    
+    if(reqStation){
+        //updatedData = 
+        res.status(200).json(await AQI.findOneAndUpdate({ station : station },{
+            station : station,
+            pm2_5 : pm2_5 ?? data.pm2_5 ?? reqStation.pm2_5,
+            pm10 : pm10 ?? data.pm10 ?? reqStation.pm10, 
+            co2 : co2 ?? data.co2 ?? reqStation.co2, 
+            no2 : no2 ?? data.no2 ?? reqStation.no2, 
+            o3 : o3 ?? data.o3 ?? reqStation.o3, 
+            temp : temp ?? data.temp ?? reqStation.temp, 
+            hum : hum ?? data.hum ?? reqStation.hum, 
+            pm1 : pm1 ?? data.pm1 ?? reqStation.pm1, 
+            o2 : o2 ?? data.o2 ?? reqStation.o2, 
+            co : co ?? data.co ?? reqStation.co
+        },
+        {new : true }))
+    }
+
+    // res.status(200).json(updatedData)
+});
+
+app.get("/:station", async (req, res) => {
     const { pm2_5, pm10, co2, no2, o3, temp, hum, pm1, o2, co } = req.query;
 
     const {station} = req.params
@@ -73,7 +109,7 @@ app.use("/:station", async (req, res) => {
         return
     }
 
-    const latestData = await AQI.find({}).sort('-1')
+    const latestData = await AQI.find({station}).sort('-1')
     res.status(201).json({ latestData }); 
 });
 

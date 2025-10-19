@@ -1,10 +1,13 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const { Schema , model } = require('mongoose');
+const cors = require('cors');
 
 const port = 8629;
 
 const app = express();
+
+app.use(cors())
 
 const data = {
     station : '',

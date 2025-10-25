@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef , useEffect } from 'react';
 import { STATION_DATA, generateMockTimeSeries, COLOR_PRIMARY, COLOR_BACKGROUND } from './data/constants';
 import MetricCard from './components/MetricCard';
 import Map from './components/MapComponent';
@@ -10,6 +10,41 @@ import './App.css';
 const App = () => {
  const [stations, setStations] = useState(STATION_DATA);
 const [selectedStationId, setSelectedStationId] = useState(STATION_DATA[0]?.id || null); 
+
+
+useEffect(() => {
+  console.log("Selected station:", selectedStationId);
+
+  const fetchStations = async () => {
+    try {
+      const res = await fetch("http://localhost:8629/api/data");
+      const data = await res.json();
+
+      // normalize keys to match frontend expectations
+      const normalized = data.map(item => ({
+        id: item._id,
+        station: item.station,
+        co2: item.co2,
+        co: item.co,
+        o2: item.o2,
+        no2: item.no2,
+        o3: item.o3,
+        temp: item.temp,
+        humidity: item.hum,      
+        pm25: item.pm2_5,       
+        pm10: item.pm10,
+        pm1: item.pm1
+      }));
+
+      console.log("Normalized data:", normalized);
+      setStations(normalized);
+    } catch (err) {
+      console.error("Error fetching data:", err);
+    }
+  };
+
+  fetchStations();
+}, [selectedStationId]);
 
 const selectedStation = stations.find(s => s.id === selectedStationId) || stations[0] || {};
 

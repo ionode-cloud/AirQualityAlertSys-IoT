@@ -2,7 +2,6 @@ import React from 'react';
 import '../App.css';
 
 const MapComponent = ({ stations, selectedStationId }) => {
-  // Find the selected station
   const selectedStation = stations.find(
     s => s._id === selectedStationId || s.id === selectedStationId
   );

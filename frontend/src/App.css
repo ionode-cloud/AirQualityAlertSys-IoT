@@ -231,6 +231,7 @@ html {
 /* =================== TABLE =================== */
 .table-panel {
   height: 500px;
+  width: 550px;
   background-color: #2c3643;
   padding: 15px;
   border-radius: 12px;
@@ -430,5 +431,21 @@ html {
     padding: 15px;
     width: 100%;
   }
+}
+
+.freezing { background-color: #5df74f; } /* icy blue */
+.cold { background-color: #81d4fa; } /* cold sky */
+.pleasant { background-color: #a5d6a7; } /* fresh green */
+.Good { background-color: #36bc5f; } /* warm orange */
+.hot { background-color: #cb6648; } /* hotter orange */
+.extreme { background-color: #e53935; } /* dangerous red */
+
+.aqi-pill {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: bold;
+  margin-top: 4px;
+  display: inline-block;
 }
 

@@ -1,71 +1,105 @@
-import React, { useState, useRef } from 'react';
-import { STATION_DATA, generateMockTimeSeries, COLOR_PRIMARY, COLOR_BACKGROUND } from './data/constants';
-import MetricCard from './components/MetricCard';
-import MapComponent from './components/MapComponent';
-import StationTable from './components/StationTable';
-import StationLineChart from './components/LineChart';
-import { Globe, Download, MapPin, Search, Cloud, Zap, Thermometer, Droplet, Wind } from 'lucide-react';
-import './App.css';
+import React, { useState, useEffect } from "react";
+import MetricCard from "./components/MetricCard";
+import MapComponent from "./components/MapComponent";
+import StationTable from "./components/StationTable";
+import StationLineChart from "./components/LineChart";
+import { setStationData, generateMockTimeSeries } from "./data/constants";
+import {
+  Download,
+  MapPin,
+  Cloud,
+  Zap,
+  Thermometer,
+  Droplet,
+  Wind
+} from "lucide-react";
+import "./App.css";
 
-const API_BASE = "https://aqi-bput.ionode.cloud";
+const API_BASE = "https://aqi-bput.ionode.cloud/api/data";
 
 const App = () => {
- const [stations, setStations] = useState(STATION_DATA);
-const [selectedStationId, setSelectedStationId] = useState(STATION_DATA[0]?.id || null); 
+  const [stations, setStations] = useState([]);
+  const [selectedStationId, setSelectedStationId] = useState(null);
+  const [chartData, setChartData] = useState([]);
 
-const selectedStation = stations.find(s => s.id === selectedStationId) || stations[0] || {};
+  // Fetch API data on load
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await fetch(API_BASE);
+        const data = await res.json();
 
-  // Add new station locally
+        setStations(data);
+        setStationData(data);
+        setChartData(generateMockTimeSeries());
+
+        if (data.length > 0) setSelectedStationId(data[0].id || data[0]._id);
+      } catch (err) {
+        console.error("API Error:", err);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const selected =
+    stations.find((s) => (s._id || s.id) === selectedStationId) || {};
+
+  // Add new station from StationTable
   const handleAddStation = (newStation) => {
-    setStations(prev => [...prev, newStation]);
+    const updatedStations = [...stations, newStation];
+    setStations(updatedStations);
+    setStationData(updatedStations);
+    setChartData(generateMockTimeSeries());
   };
 
-  // Download data as JSON
-  const handleDownload = () => {
-    const jsonString = JSON.stringify(
-      { timestamp: new Date().toISOString(), stations, timeSeriesData },
-      null,
-      2
-    );
-    const blob = new Blob([jsonString], { type: 'application/json' });
+  const downloadJSON = () => {
+    const blob = new Blob([JSON.stringify(stations, null, 2)], {
+      type: "application/json"
+    });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
-    a.download = 'air_quality_dashboard_data.json';
-    document.body.appendChild(a);
+    a.download = "air_quality_data.json";
     a.click();
-    document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
 
   return (
     <div className="dashboard-container">
-      {/* Header */}
       <header className="header-bar">
-        <h1 className="main-title"><Wind size={32} /> Air Quality Monitor</h1>
-        <button onClick={handleDownload} className="download-btn"><Download size={20} /> Download Data</button>
+        <h1 className="main-title">
+          <Wind size={32} /> Air Quality Monitor
+        </h1>
+        <button onClick={downloadJSON} className="download-btn">
+          <Download size={20} /> Download
+        </button>
       </header>
 
       {/* Metrics */}
       <div className="metrics-section">
         <div className="metrics-grid">
-          <MetricCard title="PM2.5" value={selectedStation.pm25} unit="µg/m³" icon={Cloud} colorClass="aq-card-bg" aqiStatus={true} />
-          <MetricCard title="PM10" value={selectedStation.pm10} unit="µg/m³" icon={Cloud} colorClass="aq-card-bg" aqiStatus={true} />
-          <MetricCard title="CO₂" value={selectedStation.co2} unit="ppm" icon={Zap} colorClass="aq-card-bg" />
-          <MetricCard title="NO₂" value={selectedStation.no2} unit="ppb" icon={Zap} colorClass="aq-card-bg" />
-          <MetricCard title="O₃" value={selectedStation.o3} unit="ppb" icon={Zap} colorClass="aq-card-bg" />
+          <MetricCard title="PM2.5" value={selected.pm25} icon={Cloud} aqiStatus />
+          <MetricCard title="PM10" value={selected.pm10} icon={Cloud} />
+          <MetricCard title="CO₂" value={selected.co2} icon={Zap} />
+          <MetricCard title="NO₂" value={selected.no2} icon={Zap} />
+          <MetricCard title="O₃" value={selected.o3} icon={Zap} />
         </div>
+
         <div className="metrics-grid">
-          <MetricCard title="Temperature" value={selectedStation.temp} unit="°C" icon={Thermometer} colorClass="env-card-bg" />
-          <MetricCard title="Humidity" value={selectedStation.humidity} unit="%" icon={Droplet} colorClass="env-card-bg" />
-          <MetricCard title="PM1" value={selectedStation.pm1} unit="µg/m³" icon={Cloud} colorClass="env-card-bg" />
-          <MetricCard title="O₂" value={selectedStation.o2} unit="%" icon={Zap} colorClass="env-card-bg" />
-          <MetricCard title="CO" value={selectedStation.co} unit="ppm" icon={Zap} colorClass="env-card-bg" />
+          <MetricCard title="Temp" value={selected.temp} unit="°C" icon={Thermometer} />
+          <MetricCard title="Humidity" value={selected.humidity} unit="%" icon={Droplet} />
+          <MetricCard title="PM1" value={selected.pm1} icon={Cloud} />
+          <MetricCard title="O₂" value={selected.o2} icon={Zap} />
+          <MetricCard title="CO" value={selected.co} icon={Zap} />
         </div>
       </div>
 
-      {/* Map */}
-      <h2 className="panel-title"><MapPin size={20} /> Monitoring Station Map</h2>
+      {/* Station Map & Table */}
+      <h2 className="panel-title">
+        <MapPin size={22} /> Monitoring Stations
+      </h2>
+
       <div className="app-container">
         <div className="map-container">
           <MapComponent
@@ -74,7 +108,6 @@ const selectedStation = stations.find(s => s.id === selectedStationId) || statio
           />
         </div>
 
-        {/* Station Table */}
         <div className="table-container">
           <StationTable
             stations={stations}
@@ -87,9 +120,9 @@ const selectedStation = stations.find(s => s.id === selectedStationId) || statio
 
       {/* Chart */}
       <div className="chart-panel">
-        <h2 className="chart-title">24-Hour PM2.5 Trends (Station Comparison)</h2>
+        <h2 className="chart-title">24-hour PM2.5 Trend</h2>
         <StationLineChart
-          data={timeSeriesData}
+          data={chartData}
           stations={stations}
           selectedStationId={selectedStationId}
         />

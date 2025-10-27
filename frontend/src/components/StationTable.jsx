@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+ import React, { useState } from 'react';
 import axios from 'axios';
 import { getAqiDetails } from '../data/constants';
 import '../App.css';
 
-const API_BASE = "https://aqi-bput.ionode.cloud";
+const API_BASE = "https://aqi-bput.ionode.cloud/api/data";
 
 const StationTable = ({ stations, selectedStationId, onSelect, onAddStation }) => {
   const [showForm, setShowForm] = useState(false);
@@ -28,40 +28,31 @@ const StationTable = ({ stations, selectedStationId, onSelect, onAddStation }) =
       return;
     }
 
-    // Generate unique ID for new station
     const stationId = `stn-${Date.now()}`;
 
-    // Construct GET request URL
-    const url = `${API_BASE}/${stationId}?pm2_5=${newStation.pm25 || 0}&pm10=${newStation.pm25 || 0}&co2=400&no2=20&o3=10&temp=${newStation.temp || 0}&hum=50&pm1=${newStation.pm25 || 0}&o2=21&co=1`;
+    // Construct new station data for UI only
+    const addedStation = {
+      id: stationId,
+      station: newStation.name,
+      pm25: parseFloat(newStation.pm25) || 0,
+      temp: parseFloat(newStation.temp) || 0,
+      lat: parseFloat(newStation.lat),
+      lng: parseFloat(newStation.lng),
+      pm10: parseFloat(newStation.pm25) || 0,
+      co2: 400,
+      no2: 20,
+      o3: 10,
+      hum: 50,
+      pm1: parseFloat(newStation.pm25) || 0,
+      o2: 21,
+      co: 1
+    };
 
-    try {
-      await axios.get(url);
+    // Add station locally without API call
+    onAddStation(addedStation);
 
-      // Add station locally
-      const addedStation = {
-        id: stationId,
-        station: newStation.name,
-        pm25: parseFloat(newStation.pm25) || 0,
-        temp: parseFloat(newStation.temp) || 0,
-        lat: parseFloat(newStation.lat),
-        lng: parseFloat(newStation.lng),
-        pm10: parseFloat(newStation.pm25) || 0,
-        co2: 400,
-        no2: 20,
-        o3: 10,
-        hum: 50,
-        pm1: parseFloat(newStation.pm25) || 0,
-        o2: 21,
-        co: 1
-      };
-
-      onAddStation(addedStation);
-      setNewStation({ name: '', pm25: '', temp: '', lat: '', lng: '' });
-      setShowForm(false);
-    } catch (err) {
-      console.error('Failed to add station:', err);
-      alert('Error adding station. Try again.');
-    }
+    setNewStation({ name: '', pm25: '', temp: '', lat: '', lng: '' });
+    setShowForm(false);
   };
 
   return (
@@ -78,7 +69,7 @@ const StationTable = ({ stations, selectedStationId, onSelect, onAddStation }) =
               <th>Station Name</th>
               <th>PM2.5</th>
               <th>Temp</th>
-              <th>AQI Status</th>
+              <th>Temprature Status</th>
             </tr>
           </thead>
           <tbody>
@@ -92,8 +83,8 @@ const StationTable = ({ stations, selectedStationId, onSelect, onAddStation }) =
                 <td className="table-pm25">{(s.pm25 || 0).toFixed(0)}</td>
                 <td>{(s.temp || 0).toFixed(1)}°C</td>
                 <td>
-                  <span className={`aqi-pill ${getAqiDetails(s.pm25 || 0).colorClass}`}>
-                    {getAqiDetails(s.pm25 || 0).status}
+                  <span className={`aqi-pill ${getAqiDetails(s.temp || 0).colorClass}`}>
+                    {getAqiDetails(s.temp || 0).status}
                   </span>
                 </td>
               </tr>
@@ -106,7 +97,6 @@ const StationTable = ({ stations, selectedStationId, onSelect, onAddStation }) =
         </table>
       </div>
 
-      {/* Modal Form */}
       {showForm && (
         <div className="modal-overlay">
           <div className="modal-content">

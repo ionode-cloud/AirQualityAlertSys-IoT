@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 import { getAqiDetails } from '../data/constants';
 import '../App.css';
+
+const API_BASE = "https://aqi-bput.ionode.cloud";
 
 const StationTable = ({ stations, selectedStationId, onSelect, onAddStation }) => {
   const [showForm, setShowForm] = useState(false);
@@ -17,19 +20,48 @@ const StationTable = ({ stations, selectedStationId, onSelect, onAddStation }) =
     setNewStation(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!newStation.name || !newStation.lat || !newStation.lng) return;
-    onAddStation({
-      id: `stn-${Date.now()}`,
-      name: newStation.name,
-      pm25: parseFloat(newStation.pm25) || 0,
-      temp: parseFloat(newStation.temp) || 0,
-      lat: parseFloat(newStation.lat),
-      lng: parseFloat(newStation.lng),
-    });
-    setNewStation({ name: '', pm25: '', temp: '', lat: '', lng: '' });
-    setShowForm(false);
+
+    if (!newStation.name || !newStation.lat || !newStation.lng) {
+      alert('Please fill all required fields.');
+      return;
+    }
+
+    // Generate unique ID for new station
+    const stationId = `stn-${Date.now()}`;
+
+    // Construct GET request URL
+    const url = `${API_BASE}/${stationId}?pm2_5=${newStation.pm25 || 0}&pm10=${newStation.pm25 || 0}&co2=400&no2=20&o3=10&temp=${newStation.temp || 0}&hum=50&pm1=${newStation.pm25 || 0}&o2=21&co=1`;
+
+    try {
+      await axios.get(url);
+
+      // Add station locally
+      const addedStation = {
+        id: stationId,
+        station: newStation.name,
+        pm25: parseFloat(newStation.pm25) || 0,
+        temp: parseFloat(newStation.temp) || 0,
+        lat: parseFloat(newStation.lat),
+        lng: parseFloat(newStation.lng),
+        pm10: parseFloat(newStation.pm25) || 0,
+        co2: 400,
+        no2: 20,
+        o3: 10,
+        hum: 50,
+        pm1: parseFloat(newStation.pm25) || 0,
+        o2: 21,
+        co: 1
+      };
+
+      onAddStation(addedStation);
+      setNewStation({ name: '', pm25: '', temp: '', lat: '', lng: '' });
+      setShowForm(false);
+    } catch (err) {
+      console.error('Failed to add station:', err);
+      alert('Error adding station. Try again.');
+    }
   };
 
   return (
@@ -50,22 +82,26 @@ const StationTable = ({ stations, selectedStationId, onSelect, onAddStation }) =
             </tr>
           </thead>
           <tbody>
-            {stations.map(s => (
+            {stations.length > 0 ? stations.map(s => (
               <tr
-                key={s.id}
-                className={`table-row ${s.id === selectedStationId ? 'selected-row' : ''}`}
-                onClick={() => onSelect(s.id)}
+                key={s._id || s.id}
+                className={`table-row ${s._id === selectedStationId || s.id === selectedStationId ? 'selected-row' : ''}`}
+                onClick={() => onSelect(s._id || s.id)}
               >
-                <th className="table-row-header">{s.name}</th>
-                <td className="table-pm25">{s.pm25.toFixed(0)}</td>
-                <td>{s.temp.toFixed(1)}°C</td>
+                <th className="table-row-header">{s.station || s.name}</th>
+                <td className="table-pm25">{(s.pm25 || 0).toFixed(0)}</td>
+                <td>{(s.temp || 0).toFixed(1)}°C</td>
                 <td>
-                  <span className={`aqi-pill ${getAqiDetails(s.pm25).colorClass}`}>
-                    {getAqiDetails(s.pm25).status}
+                  <span className={`aqi-pill ${getAqiDetails(s.pm25 || 0).colorClass}`}>
+                    {getAqiDetails(s.pm25 || 0).status}
                   </span>
                 </td>
               </tr>
-            ))}
+            )) : (
+              <tr>
+                <td colSpan="4" style={{ textAlign: 'center', padding: '10px' }}>No stations available</td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

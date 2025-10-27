@@ -3,76 +3,28 @@ export const COLOR_SECONDARY = "#3b82f6";
 export const COLOR_BACKGROUND = "#1f2937";
 export const COLOR_TEXT_LIGHT = "#e5e7eb";
 
-export const STATION_DATA = [
-  {
-    id: "stn-001",
-    name: "Bhubaneswar Central",
-    lat: 20.2796,
-    lng: 85.8825,
-    aqi: 125,
-    pm25: 70,
-    pm10: 120,
-    co: 8.5,
-    co2: 500,
-    o3: 55,
-    no2: 45,
-    o2: 20.9,
-    temp: 30.5,
-    humidity: 65,
-    pm1: 50,
-  },
-  {
-    id: "stn-002",
-    name: "Cuttack Ring Road",
-    lat: 20.4622,
-    lng: 85.8943,
-    aqi: 78,
-    pm25: 40,
-    pm10: 75,
-    co: 6.2,
-    co2: 450,
-    o3: 40,
-    no2: 30,
-    o2: 21.0,
-    temp: 28.1,
-    humidity: 72,
-    pm1: 50,
-  },
-  {
-    id: "stn-003",
-    name: "Puri Beach Monitoring",
-    lat: 19.8037,
-    lng: 85.8569,
-    aqi: 42,
-    pm25: 15,
-    pm10: 30,
-    co: 4.0,
-    co2: 410,
-    o3: 30,
-    no2: 15,
-    o2: 21.1,
-    temp: 26.9,
-    humidity: 80,
-    pm1: 50,
-  },
-  {
-    id: "stn-004",
-    name: "Airport Industrial Zone",
-    lat: 20.2505,
-    lng: 85.8173,
-    aqi: 188,
-    pm25: 130,
-    pm10: 200,
-    co: 10.1,
-    co2: 550,
-    o3: 60,
-    no2: 55,
-    o2: 20.8,
-    temp: 32.2,
-    humidity: 60,
-    pm1: 50,
-  },
-];
+// Dynamic station data
+export let STATION_DATA = [];
+
+export const setStationData = (stations) => {
+  STATION_DATA = stations.map((s) => ({
+    id: s._id || s.id || `stn-${Date.now()}`,
+    name: s.station || s.name || "Unknown Station",
+    lat: s.lat || 0,
+    lng: s.lng || 0,
+    aqi: s.pm25 || 0,
+    pm25: s.pm25 || 0,
+    pm10: s.pm10 || s.pm25 || 0,
+    co: s.co || 0,
+    co2: s.co2 || 0,
+    o3: s.o3 || 0,
+    no2: s.no2 || 0,
+    o2: s.o2 || 0,
+    temp: s.temp || 0,
+    humidity: s.hum || 0,
+    pm1: s.pm1 || 0,
+  }));
+};
 
 export const generateMockTimeSeries = () => {
   const data = [];
@@ -93,6 +45,7 @@ export const generateMockTimeSeries = () => {
   });
   return data;
 };
+
 export const getAqiDetails = (pm25) => {
   let colorClass, status;
   if (pm25 <= 12) (colorClass = "bg-green-600"), (status = "Good");
@@ -103,3 +56,4 @@ export const getAqiDetails = (pm25) => {
   else (colorClass = "bg-purple-600"), (status = "Very Unhealthy");
   return { colorClass, status };
 };
+

@@ -1,121 +1,150 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const { Schema , model } = require('mongoose');
-const cors = require('cors');
-
-const port = 8629;
+require('dotenv').config();
+const express = require("express");
+const mongoose = require("mongoose");
+const cors = require("cors");
 
 const app = express();
+const PORT = process.env.PORT || 8629;
 
-app.use(cors())
+/* ================= MIDDLEWARE ================= */
+app.use(cors());
+app.use(express.json());
 
-const data = {
-    station : '',
-     pm2_5 : 6, 
-     pm10 : 7, 
-     co2 : 100, 
-     no2 : 700, 
-     o3 : 12, 
-     temp : 40, 
-     hum : 78, 
-     pm1 : 6, 
-     o2 : 300, 
-     co : 50
-}
+/* ================= DEFAULT DATA ================= */
+const DEFAULT_DATA = {
+  station: "",
+  pm2_5: 6,
+  pm10: 7,
+  co2: 100,
+  no2: 700,
+  o3: 12,
+  temp: 40,
+  hum: 78,
+  pm1: 6,
+  o2: 300,
+  co: 50,
+};
 
-mongoose.connect('mongodb+srv://ionode:ionode@ionode.qgqbadm.mongodb.net/AQIAlertSys?retryWrites=true&w=majority&appName=ionode')
-.then(()=>console.log('MongoDB connected successfuly'))
-.catch(err=>console.log('Error :',err))
+/* ================= DB CONNECTION ================= */
+mongoose
+  .connect(process.env.MONGO_URI)
+  .then(() => console.log(" MongoDB connected successfully"))
+  .catch((err) => console.error(" MongoDB error:", err));
 
-const aqiSchema = new Schema({
-    station: String,
+/* ================= SCHEMA ================= */
+const aqiSchema = new mongoose.Schema(
+  {
+    station: { type: String, required: true },
+    pm2_5: Number,
+    pm10: Number,
     co2: Number,
-    co: Number,
-    o2: Number,
     no2: Number,
     o3: Number,
     temp: Number,
     hum: Number,
-    pm2_5: Number,
-    pm10: Number,
     pm1: Number,
+    o2: Number,
+    co: Number,
+  },
+  { timestamps: true }
+);
+
+const AQI = mongoose.model("AQI", aqiSchema);
+
+/* ================= ROUTES ================= */
+
+/* 🔹 Get all AQI data */
+app.get("/data", async (req, res) => {
+  try {
+    const data = await AQI.find().sort({ createdAt: -1 });
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-const AQI = model("AQI",aqiSchema);
-
-app.get("/api/data", async (req,res) => {
-    const allData = await AQI.find({});
-    res.status(200).json(allData)
-});
-
-app.get("/api/data/update/:station", async (req,res) => {
-    const { pm2_5, pm10, co2, no2, o3, temp, hum, pm1, o2, co } = req.query;
+/* 🔹 Get latest data for one station */
+app.get("/data/:station", async (req, res) => {
+  try {
     const { station } = req.params;
-    let reqStation = await AQI.find({ station : station })??null;
-    let updatedData
-    // console.log(reqStation);
-    
 
-    // console.log(reqStation[0].pm1);
-    
-    if(reqStation){
-        //updatedData = 
-        res.status(200).json(await AQI.findOneAndUpdate({ station : station },{
-            station : station,
-            pm2_5 : pm2_5 ?? data.pm2_5 ?? reqStation.pm2_5,
-            pm10 : pm10 ?? data.pm10 ?? reqStation.pm10, 
-            co2 : co2 ?? data.co2 ?? reqStation.co2, 
-            no2 : no2 ?? data.no2 ?? reqStation.no2, 
-            o3 : o3 ?? data.o3 ?? reqStation.o3, 
-            temp : temp ?? data.temp ?? reqStation.temp, 
-            hum : hum ?? data.hum ?? reqStation.hum, 
-            pm1 : pm1 ?? data.pm1 ?? reqStation.pm1, 
-            o2 : o2 ?? data.o2 ?? reqStation.o2, 
-            co : co ?? data.co ?? reqStation.co
-        },
-        {new : true }))
+    const latestData = await AQI
+      .findOne({ station })
+      .sort({ createdAt: -1 });
+
+    if (!latestData) {
+      return res.status(404).json({ message: "Station not found" });
     }
 
-    // res.status(200).json(updatedData)
+    res.json(latestData);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-app.get("/:station", async (req, res) => {
-    const { pm2_5, pm10, co2, no2, o3, temp, hum, pm1, o2, co } = req.query;
+/* 🔹 Create new AQI data */
+app.post("/data/:station", async (req, res) => {
+  try {
+    const { station } = req.params;
 
-    const {station} = req.params
-    // console.log(station);
-     
-    // console.log(pm2_5, pm10, co2, no2, o3, temp, hum, pm1, o2, co);
-    
-    if (pm2_5 || pm10 || co2 || no2 || o3 || temp || hum || pm1 || o2 || co) {
-        console.log('Params :', req.params ,'\n Query : ',req.query  );
-        
-        const aqiData = new AQI({
-            station : station ?? data.station,
-            pm2_5 : pm2_5 ?? data.pm2_5,
-            pm10 : pm10 ?? data.pm10, 
-            co2 : co2 ?? data.co2, 
-            no2 : no2 ?? data.no2, 
-            o3 : o3 ?? data.o3, 
-            temp : temp ?? data.temp, 
-            hum : hum ?? data.hum, 
-            pm1 : pm1 ?? data.pm1, 
-            o2 : o2 ?? data.o2, 
-            co : co ?? data.co
-        })
+    const newData = new AQI({
+      station,
+      pm2_5: req.body.pm2_5 ?? DEFAULT_DATA.pm2_5,
+      pm10: req.body.pm10 ?? DEFAULT_DATA.pm10,
+      co2: req.body.co2 ?? DEFAULT_DATA.co2,
+      no2: req.body.no2 ?? DEFAULT_DATA.no2,
+      o3: req.body.o3 ?? DEFAULT_DATA.o3,
+      temp: req.body.temp ?? DEFAULT_DATA.temp,
+      hum: req.body.hum ?? DEFAULT_DATA.hum,
+      pm1: req.body.pm1 ?? DEFAULT_DATA.pm1,
+      o2: req.body.o2 ?? DEFAULT_DATA.o2,
+      co: req.body.co ?? DEFAULT_DATA.co,
+    });
 
-        await aqiData.save()
+    await newData.save();
 
-        res.status(200).json({ message: "Your Data is saved",
-            data : aqiData
-         })
-        return
-    }
-
-    const latestData = await AQI.find({station}).sort('-1')
-    res.status(201).json({ latestData }); 
+    res.status(201).json({
+      message: " AQI data saved successfully",
+      data: newData,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-app.listen(port, () => {
-    console.log(`Server is running on port : ${port}`);
-})
+/* 🔹 Update AQI data (or create if not exists) */
+app.put("/data/:station", async (req, res) => {
+  try {
+    const { station } = req.params;
+
+    const updatedData = await AQI.findOneAndUpdate(
+      { station },
+      {
+        station,
+        pm2_5: req.body.pm2_5,
+        pm10: req.body.pm10,
+        co2: req.body.co2,
+        no2: req.body.no2,
+        o3: req.body.o3,
+        temp: req.body.temp,
+        hum: req.body.hum,
+        pm1: req.body.pm1,
+        o2: req.body.o2,
+        co: req.body.co,
+      },
+      { new: true, upsert: true }
+    );
+
+    res.json({
+      message: " AQI data updated successfully",
+      data: updatedData,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* ================= SERVER ================= */
+app.listen(PORT, () => {
+  console.log(`🚀 Server running at http://localhost:${PORT}`);
+});

@@ -17,6 +17,8 @@ import "./App.css";
 
 const API_BASE = "https://aqi-bput.ionode.cloud/api/data";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const App = () => {
   const [stations, setStations] = useState([]);
   const [selectedStationId, setSelectedStationId] = useState(null);
@@ -67,6 +69,7 @@ const App = () => {
 
   return (
     <div className="dashboard-container">
+      {/* HEADER */}
       <header className="header-bar">
         <h1 className="main-title">
           <Wind size={32} /> Air Quality Monitor

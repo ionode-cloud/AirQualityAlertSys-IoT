@@ -57,7 +57,7 @@ const StationTable = ({ stations, selectedStationId, onSelect, onAddStation }) =
 
   return (
     <div className="table-panel">
-      <div className="panel-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div className="panel-header">
         <h2 className="panel-title">Station Overview</h2>
         <button className="add-btn" onClick={() => setShowForm(true)}>+</button>
       </div>
@@ -102,29 +102,15 @@ const StationTable = ({ stations, selectedStationId, onSelect, onAddStation }) =
           <div className="modal-content">
             <h3>Add New Station</h3>
             <form onSubmit={handleSubmit}>
-              <label>
-                Name:
-                <input type="text" name="name" value={newStation.name} onChange={handleInputChange} required />
-              </label>
-              <label>
-                PM2.5:
-                <input type="number" name="pm25" value={newStation.pm25} onChange={handleInputChange} />
-              </label>
-              <label>
-                Temp (°C):
-                <input type="number" name="temp" value={newStation.temp} onChange={handleInputChange} />
-              </label>
-              <label>
-                Latitude:
-                <input type="number" step="0.0001" name="lat" value={newStation.lat} onChange={handleInputChange} required />
-              </label>
-              <label>
-                Longitude:
-                <input type="number" step="0.0001" name="lng" value={newStation.lng} onChange={handleInputChange} required />
-              </label>
-              <div style={{ marginTop: '10px' }}>
+              <input name="name" placeholder="Station Name" value={newStation.name} onChange={handleInputChange} required />
+              <input name="pm25" type="number" placeholder="PM2.5" value={newStation.pm25} onChange={handleInputChange} />
+              <input name="temp" type="number" placeholder="Temperature" value={newStation.temp} onChange={handleInputChange} />
+              <input name="lat" type="number" step="0.0001" placeholder="Latitude" value={newStation.lat} onChange={handleInputChange} required />
+              <input name="lng" type="number" step="0.0001" placeholder="Longitude" value={newStation.lng} onChange={handleInputChange} required />
+
+              <div style={{ marginTop: 10 }}>
                 <button type="submit">Add</button>
-                <button type="button" onClick={() => setShowForm(false)} style={{ marginLeft: '10px' }}>Cancel</button>
+                <button type="button" onClick={() => setShowForm(false)} style={{ marginLeft: 10 }}>Cancel</button>
               </div>
             </form>
           </div>

@@ -15,8 +15,6 @@ import {
 } from "lucide-react";
 import "./App.css";
 
-const API_BASE = "https://aqi-bput.ionode.cloud/api/data";
-
 const API_URL = import.meta.env.VITE_API_URL;
 
 const App = () => {
@@ -28,7 +26,7 @@ const App = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await fetch(API_BASE);
+        const res = await fetch(`${API_URL}/data`);
         const data = await res.json();
 
         setStations(data);

@@ -1,9 +1,6 @@
  import React, { useState } from 'react';
-import axios from 'axios';
 import { getAqiDetails } from '../data/constants';
 import '../App.css';
-
-const API_BASE = "https://aqi-bput.ionode.cloud/api/data";
 
 const StationTable = ({ stations, selectedStationId, onSelect, onAddStation }) => {
   const [showForm, setShowForm] = useState(false);
